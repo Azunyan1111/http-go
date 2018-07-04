@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+  mysql_http:
+    image: 'mysql:5.7'
+    volumes:
+      - './data/db/DB:/var/lib/DB'
+      - './data/db/conf.d:/etc/mysql/conf.d'
+      - './data/db/log:/var/log'
+      - './mysql-init:/docker-entrypoint-initdb.d'
+    ports:
+      - '54321:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_DATABASE: 'http'
+    logging:
+          driver: "json-file" # defaults if not specified
+          options:
+            max-size: "10m"
+            max-file: "3"
+#    restart: always
+
+  http:
+    image: 'golang:1.9.2'
+    volumes:
+      - 'data:/go'
+      - '.:/go/src/github.com/Azunyan1111/http-go'
+    command: bash -c "cd /go/src/github.com/Azunyan1111/http-go && go get ./... && go run main.go"
+    ports:
+      - '80:80'
+#      - '443:443'
+    environment:
+      PORT: '80'
+      DEP : 'DEP'
+      MYSQL_URL: 'mysql_http:3306'
+      MYSQL_USER: 'root'
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_DATABASE: 'http'
+    logging:
+          driver: "json-file" # defaults if not specified
+          options:
+            max-size: "10m"
+            max-file: "3"
+#    restart: always
+
+
+volumes:
+  data:
+    driver: 'local'
